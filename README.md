@@ -1,22 +1,31 @@
 # Sistema de gestão de orçamentos e obras (construtor)
 
-Stack: **Node.js**, **Express**, **React (Vite)**, **JWT**, **PostgreSQL**.
+Stack: **Node.js**, **Express**, **Prisma**, **React (Vite)**, **JWT**, **PostgreSQL**.
 
 ## Requisitos
 
 - Node.js 18+
 - PostgreSQL 14+
 
-## Base de dados
+## Base de dados (Prisma)
 
 1. Crie uma base de dados (ex.: `gestao_construtor`).
-2. Aplique o esquema:
+2. Configure `DATABASE_URL` em `backend/.env` (ver `backend/.env.example`).
+3. Aplique o esquema:
 
 ```bash
-psql "$DATABASE_URL" -f backend/sql/schema.sql
+cd backend
+npm install
+npx prisma migrate dev
 ```
 
-(Em Windows, use o `psql` do PostgreSQL ou pgAdmin para executar o ficheiro `backend/sql/schema.sql`.)
+Se preferir sincronizar sem ficheiros de migração (ambiente local):
+
+```bash
+npx prisma db push
+```
+
+O modelo está em `backend/prisma/schema.prisma`. O ficheiro `backend/sql/schema.sql` mantém-se apenas como referência histórica.
 
 ## Backend
 
@@ -32,7 +41,12 @@ npm install
 npm run dev
 ```
 
-API por omissão: `http://localhost:4000` (`GET /api/health`).
+API por omissão: `http://localhost:4000` (`GET /api/health` — inclui teste à BD).
+
+Outros comandos úteis:
+
+- `npm run db:studio` — interface visual Prisma Studio
+- `npm run db:migrate` — criar/aplicar migrações
 
 ## Frontend
 

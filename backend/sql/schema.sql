@@ -1,3 +1,6 @@
+-- Referência legada. O esquema ativo é gerido por Prisma: backend/prisma/schema.prisma
+-- Aplique com: npx prisma migrate dev  (ou  npx prisma db push)
+
 -- Extensões (opcional)
 -- CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
