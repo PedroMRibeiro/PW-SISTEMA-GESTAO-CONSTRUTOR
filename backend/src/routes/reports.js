@@ -1,16 +1,27 @@
 import { Router } from 'express';
-import { query } from '../db.js';
+import { prisma } from '../prisma/prismaClient.js';
 import { requireAuth } from '../middleware/auth.js';
 import { computeBudgetTotals } from '../services/budget.js';
+function linesForTotals(budgetLines) {
+  return budgetLines.map((l) => ({
+    quantity: Number(l.quantity),
+    unit_price: Number(l.unitPrice),
+  }));
+}
 
 const router = Router();
 router.use(requireAuth);
 
 router.get('/by-status', async (_req, res) => {
-  const { rows: projects } = await query(
-    `SELECT p.id, p.name, p.status, p.iva_rate
-     FROM projects p`,
-  );
+  const projects = await prisma.project.findMany({
+    select: {
+      id: true,
+      name: true,
+      status: true,
+      ivaRate: true,
+      budgetLines: { select: { quantity: true, unitPrice: true } },
+    },
+  });
 
   const byStatus = {
     orcamento: { count: 0, total_billing: 0, projects: [] },
@@ -21,11 +32,7 @@ router.get('/by-status', async (_req, res) => {
   };
 
   for (const p of projects) {
-    const { rows: lines } = await query(
-      'SELECT quantity, unit_price FROM budget_lines WHERE project_id = $1',
-      [p.id],
-    );
-    const { total } = computeBudgetTotals(lines, p.iva_rate);
+    const { total } = computeBudgetTotals(linesForTotals(p.budgetLines), p.ivaRate);
     const bucket = byStatus[p.status];
     bucket.count += 1;
     bucket.total_billing += total;
@@ -45,27 +52,24 @@ router.get('/by-status', async (_req, res) => {
 });
 
 router.get('/dashboard', async (_req, res) => {
-  const { rows } = await query(
-    `SELECT p.id, p.name, p.status, p.iva_rate, c.name AS client_name
-     FROM projects p
-     JOIN clients c ON c.id = p.client_id
-     WHERE p.status NOT IN ('cancelada', 'concluida')`,
-  );
+  const rows = await prisma.project.findMany({
+    where: { status: { notIn: ['cancelada', 'concluida'] } },
+    include: {
+      client: { select: { name: true } },
+      budgetLines: { select: { quantity: true, unitPrice: true } },
+    },
+  });
 
   let emCursoTotal = 0;
   const active = [];
 
   for (const row of rows) {
-    const { rows: lines } = await query(
-      'SELECT quantity, unit_price FROM budget_lines WHERE project_id = $1',
-      [row.id],
-    );
-    const { total } = computeBudgetTotals(lines, row.iva_rate);
+    const { total } = computeBudgetTotals(linesForTotals(row.budgetLines), row.ivaRate);
     active.push({
       id: row.id,
       name: row.name,
       status: row.status,
-      client_name: row.client_name,
+      client_name: row.client.name,
       budget_total: total,
     });
     if (row.status === 'em_curso') {

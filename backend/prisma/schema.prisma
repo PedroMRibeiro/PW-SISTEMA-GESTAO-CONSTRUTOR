@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProjectStatus {
+  orcamento
+  aprovada
+  em_curso
+  concluida
+  cancelada
+
+  @@map("project_status")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("users")
+}
+
+model Client {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  email     String?   @db.VarChar(255)
+  phone     String?   @db.VarChar(64)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  projects  Project[]
+
+  @@map("clients")
+}
+
+model Project {
+  id          Int           @id @default(autoincrement())
+  clientId    Int           @map("client_id")
+  name        String        @db.VarChar(255)
+  description String?       @db.Text
+  status      ProjectStatus @default(orcamento)
+  ivaRate     Decimal       @default(23.00) @map("iva_rate") @db.Decimal(5, 2)
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  client      Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  budgetLines BudgetLine[]
+
+  @@index([clientId], map: "idx_projects_client")
+  @@index([status], map: "idx_projects_status")
+  @@map("projects")
+}
+
+model BudgetLine {
+  id           Int     @id @default(autoincrement())
+  projectId    Int     @map("project_id")
+  description  String  @db.VarChar(500)
+  quantity     Decimal @default(1) @db.Decimal(14, 4)
+  unitPrice    Decimal @default(0) @map("unit_price") @db.Decimal(14, 2)
+  displayOrder Int     @default(0) @map("display_order")
+  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId], map: "idx_budget_lines_project")
+  @@map("budget_lines")
+}

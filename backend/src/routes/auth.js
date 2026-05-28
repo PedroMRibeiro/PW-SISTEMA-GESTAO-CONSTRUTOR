@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
-import { query } from '../db.js';
+import { prisma } from '../prisma/prismaClient.js';
 import { signToken } from '../middleware/auth.js';
+import { userToApi } from '../lib/apiShape.js';
 
 const router = Router();
 
@@ -15,15 +16,16 @@ router.post('/register', async (req, res) => {
   }
   try {
     const hash = await bcrypt.hash(String(password), 10);
-    const { rows } = await query(
-      'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email, created_at',
-      [String(email).toLowerCase().trim(), hash],
-    );
-    const user = rows[0];
+    const user = await prisma.user.create({
+      data: {
+        email: String(email).toLowerCase().trim(),
+        passwordHash: hash,
+      },
+    });
     const token = signToken({ sub: user.id, email: user.email });
-    return res.status(201).json({ user: { id: user.id, email: user.email }, token });
+    return res.status(201).json({ user: userToApi(user), token });
   } catch (e) {
-    if (e.code === '23505') {
+    if (e.code === 'P2002') {
       return res.status(409).json({ error: 'Email já registado' });
     }
     console.error(e);
@@ -37,15 +39,14 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ error: 'Email e palavra-passe são obrigatórios' });
   }
   try {
-    const { rows } = await query('SELECT id, email, password_hash FROM users WHERE email = $1', [
-      String(email).toLowerCase().trim(),
-    ]);
-    const user = rows[0];
-    if (!user || !(await bcrypt.compare(String(password), user.password_hash))) {
+    const user = await prisma.user.findUnique({
+      where: { email: String(email).toLowerCase().trim() },
+    });
+    if (!user || !(await bcrypt.compare(String(password), user.passwordHash))) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
     const token = signToken({ sub: user.id, email: user.email });
-    return res.json({ user: { id: user.id, email: user.email }, token });
+    return res.json({ user: userToApi(user), token });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ error: 'Erro no login' });
