@@ -37,6 +37,7 @@ export function projectToApi(project, clientName) {
     description: project.description,
     status: project.status,
     iva_rate: num(project.ivaRate),
+    profit_rate: num(project.profitRate),
     created_at: project.createdAt,
     updated_at: project.updatedAt,
     ...(clientName != null ? { client_name: clientName } : {}),

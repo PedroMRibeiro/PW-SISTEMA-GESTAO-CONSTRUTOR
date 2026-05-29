@@ -44,6 +44,7 @@ model Project {
   description String?       @db.Text
   status      ProjectStatus @default(orcamento)
   ivaRate     Decimal       @default(23.00) @map("iva_rate") @db.Decimal(5, 2)
+  profitRate  Decimal       @default(0.00) @map("profit_rate") @db.Decimal(5, 2)
   createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   client      Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)

@@ -35,6 +35,7 @@ export default function ProjectDetailPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [ivaRate, setIvaRate] = useState('23');
+  const [profitRate, setProfitRate] = useState('0');
   const [lines, setLines] = useState([]);
   const [budget, setBudget] = useState({ subtotal: 0, iva_amount: 0, total: 0, iva_rate: 23 });
 
@@ -56,6 +57,7 @@ export default function ProjectDetailPage() {
         setName(p.name);
         setDescription(p.description || '');
         setIvaRate(String(p.iva_rate));
+        setProfitRate(String(p.profit_rate ?? 0));
         setLines(
           (p.budget_lines || []).map((l) => ({
             ...l,
@@ -85,7 +87,7 @@ export default function ProjectDetailPage() {
     try {
       const p = await api(`/api/projects/${id}`, {
         method: 'PUT',
-        body: { name, description, iva_rate: Number(ivaRate) },
+        body: { name, description, iva_rate: Number(ivaRate), profit_rate: Number(profitRate) },
       });
       setProject(p);
       setBudget(p.budget);
@@ -247,6 +249,17 @@ export default function ProjectDetailPage() {
                 min="0"
                 value={ivaRate}
                 onChange={(e) => setIvaRate(e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="pprofit">Lucro do construtor (%)</label>
+              <input
+                id="pprofit"
+                type="number"
+                step="0.01"
+                min="0"
+                value={profitRate}
+                onChange={(e) => setProfitRate(e.target.value)}
               />
             </div>
           </div>

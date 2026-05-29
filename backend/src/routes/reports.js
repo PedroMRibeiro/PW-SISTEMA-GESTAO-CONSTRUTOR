@@ -19,35 +19,42 @@ router.get('/by-status', async (_req, res) => {
       name: true,
       status: true,
       ivaRate: true,
+      profitRate: true,
       budgetLines: { select: { quantity: true, unitPrice: true } },
     },
   });
 
   const byStatus = {
-    orcamento: { count: 0, total_billing: 0, projects: [] },
-    aprovada: { count: 0, total_billing: 0, projects: [] },
-    em_curso: { count: 0, total_billing: 0, projects: [] },
-    concluida: { count: 0, total_billing: 0, projects: [] },
-    cancelada: { count: 0, total_billing: 0, projects: [] },
+    orcamento: { count: 0, total_billing: 0, total_profit: 0, projects: [] },
+    aprovada: { count: 0, total_billing: 0, total_profit: 0, projects: [] },
+    em_curso: { count: 0, total_billing: 0, total_profit: 0, projects: [] },
+    concluida: { count: 0, total_billing: 0, total_profit: 0, projects: [] },
+    cancelada: { count: 0, total_billing: 0, total_profit: 0, projects: [] },
   };
 
   for (const p of projects) {
     const { total } = computeBudgetTotals(linesForTotals(p.budgetLines), p.ivaRate);
+    const profitRate = Number(p.profitRate) || 0;
+    const profitAmount = total * (profitRate / 100);
     const bucket = byStatus[p.status];
     bucket.count += 1;
     bucket.total_billing += total;
-    bucket.projects.push({ id: p.id, name: p.name, total });
+    bucket.total_profit += profitAmount;
+    bucket.projects.push({ id: p.id, name: p.name, total, profit_rate: profitRate, profit_amount: profitAmount });
   }
 
   for (const k of Object.keys(byStatus)) {
     byStatus[k].total_billing = Math.round((byStatus[k].total_billing + Number.EPSILON) * 100) / 100;
+    byStatus[k].total_profit = Math.round((byStatus[k].total_profit + Number.EPSILON) * 100) / 100;
   }
 
   const grandTotal = Object.values(byStatus).reduce((s, b) => s + b.total_billing, 0);
+  const grandProfit = Object.values(byStatus).reduce((s, b) => s + b.total_profit, 0);
 
   res.json({
     by_status: byStatus,
     grand_total_billing: Math.round((grandTotal + Number.EPSILON) * 100) / 100,
+    grand_total_profit: Math.round((grandProfit + Number.EPSILON) * 100) / 100,
   });
 });
 

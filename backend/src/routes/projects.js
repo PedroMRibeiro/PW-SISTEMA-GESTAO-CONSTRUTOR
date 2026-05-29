@@ -52,7 +52,7 @@ router.get('/', async (_req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { client_id, name, description, status, iva_rate } = req.body || {};
+  const { client_id, name, description, status, iva_rate, profit_rate } = req.body || {};
   if (!client_id || !name || !String(name).trim()) {
     return res.status(400).json({ error: 'client_id e name são obrigatórios' });
   }
@@ -60,6 +60,7 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'Estado inválido' });
   }
   const rate = iva_rate != null ? Number(iva_rate) : 23;
+  const profitRate = profit_rate != null ? Number(profit_rate) : 0;
   const row = await prisma.project.create({
     data: {
       clientId: Number(client_id),
@@ -67,6 +68,7 @@ router.post('/', async (req, res) => {
       description: description || null,
       status: status || 'orcamento',
       ivaRate: rate,
+      profitRate,
     },
   });
   const full = await projectWithBudget(row);
@@ -88,7 +90,7 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', async (req, res) => {
   const id = parseId(req.params.id);
   if (!id) return res.status(400).json({ error: 'ID inválido' });
-  const { name, description, iva_rate } = req.body || {};
+  const { name, description, iva_rate, profit_rate } = req.body || {};
   if (!name || !String(name).trim()) {
     return res.status(400).json({ error: 'name é obrigatório' });
   }
@@ -99,6 +101,7 @@ router.put('/:id', async (req, res) => {
         name: String(name).trim(),
         description: description ?? null,
         ...(iva_rate != null ? { ivaRate: Number(iva_rate) } : {}),
+        ...(profit_rate != null ? { profitRate: Number(profit_rate) } : {}),
       },
       include: { client: true },
     });

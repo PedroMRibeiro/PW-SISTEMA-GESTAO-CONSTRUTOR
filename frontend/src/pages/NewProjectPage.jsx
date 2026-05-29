@@ -9,6 +9,7 @@ export default function NewProjectPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [ivaRate, setIvaRate] = useState('23');
+  const [profitRate, setProfitRate] = useState('0');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -40,6 +41,7 @@ export default function NewProjectPage() {
           name,
           description,
           iva_rate: Number(ivaRate),
+          profit_rate: Number(profitRate),
         },
       });
       nav(`/projetos/${p.id}`, { replace: true });
@@ -76,6 +78,17 @@ export default function NewProjectPage() {
         <div className="field">
           <label htmlFor="iva">Taxa de IVA (%)</label>
           <input id="iva" type="number" step="0.01" min="0" value={ivaRate} onChange={(e) => setIvaRate(e.target.value)} />
+        </div>
+        <div className="field">
+          <label htmlFor="profit">Taxa de lucro (%)</label>
+          <input
+            id="profit"
+            type="number"
+            step="0.01"
+            min="0"
+            value={profitRate}
+            onChange={(e) => setProfitRate(e.target.value)}
+          />
         </div>
         <button type="submit" className="btn btn-primary" disabled={!clientId}>
           Criar projeto
