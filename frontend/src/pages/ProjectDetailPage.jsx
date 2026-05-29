@@ -37,7 +37,14 @@ export default function ProjectDetailPage() {
   const [ivaRate, setIvaRate] = useState('23');
   const [profitRate, setProfitRate] = useState('0');
   const [lines, setLines] = useState([]);
-  const [budget, setBudget] = useState({ subtotal: 0, iva_amount: 0, total: 0, iva_rate: 23 });
+  const [budget, setBudget] = useState({
+    subtotal: 0,
+    iva_amount: 0,
+    profit_amount: 0,
+    total: 0,
+    iva_rate: 23,
+    profit_rate: 0,
+  });
 
   const [newDesc, setNewDesc] = useState('');
   const [newQty, setNewQty] = useState('1');
@@ -77,8 +84,8 @@ export default function ProjectDetailPage() {
   }, [id]);
 
   const previewNewLine = useMemo(
-    () => computeTotals([{ quantity: newQty, unit_price: newPrice }], ivaRate),
-    [newQty, newPrice, ivaRate],
+    () => computeTotals([{ quantity: newQty, unit_price: newPrice }], ivaRate, profitRate),
+    [newQty, newPrice, ivaRate, profitRate],
   );
 
   async function saveMeta(e) {
@@ -122,8 +129,10 @@ export default function ProjectDetailPage() {
       setBudget({
         subtotal: res.subtotal,
         iva_amount: res.iva_amount,
+        profit_amount: res.profit_amount,
         total: res.total,
         iva_rate: res.iva_rate,
+        profit_rate: res.profit_rate,
       });
       setLines(
         res.lines.map((l) => ({
@@ -155,8 +164,10 @@ export default function ProjectDetailPage() {
       setBudget({
         subtotal: res.subtotal,
         iva_amount: res.iva_amount,
+        profit_amount: res.profit_amount,
         total: res.total,
         iva_rate: res.iva_rate,
+        profit_rate: res.profit_rate,
       });
       setLines(
         res.lines.map((l) => ({
@@ -180,8 +191,10 @@ export default function ProjectDetailPage() {
       setBudget({
         subtotal: res.subtotal,
         iva_amount: res.iva_amount,
+        profit_amount: res.profit_amount,
         total: res.total,
         iva_rate: res.iva_rate,
+        profit_rate: res.profit_rate,
       });
       setLines(
         res.lines.map((l) => ({
@@ -214,7 +227,7 @@ export default function ProjectDetailPage() {
     }
   }
 
-  const tableTotals = useMemo(() => computeTotals(lines, ivaRate), [lines, ivaRate]);
+  const tableTotals = useMemo(() => computeTotals(lines, ivaRate, profitRate), [lines, ivaRate, profitRate]);
 
   if (!project && !error) {
     return <p className="muted">A carregar…</p>;
@@ -366,13 +379,13 @@ export default function ProjectDetailPage() {
           </table>
         </div>
         <p className="muted" style={{ marginTop: '0.75rem' }}>
-          Resumo com taxa atual ({ivaRate}% IVA): subtotal {fmtEUR(tableTotals.subtotal)}, IVA{' '}
-          {fmtEUR(tableTotals.iva_amount)}, total {fmtEUR(tableTotals.total)}. Os valores oficiais seguem o servidor
-          após guardar.
+          Pré-visualização ({ivaRate}% IVA, {profitRate}% lucro): subtotal {fmtEUR(tableTotals.subtotal)} + IVA{' '}
+          {fmtEUR(tableTotals.iva_amount)} + lucro {fmtEUR(tableTotals.profit_amount)} = total{' '}
+          {fmtEUR(tableTotals.total)}.
         </p>
         <p className="mono" style={{ fontSize: '1.05rem' }}>
-          Totais guardados: {fmtEUR(budget.subtotal)} + IVA {fmtEUR(budget.iva_amount)} ={' '}
-          <strong>{fmtEUR(budget.total)}</strong>
+          Totais guardados: {fmtEUR(budget.subtotal)} + IVA {fmtEUR(budget.iva_amount)} + lucro{' '}
+          {fmtEUR(budget.profit_amount)} = <strong>{fmtEUR(budget.total)}</strong>
         </p>
       </div>
 
@@ -408,8 +421,8 @@ export default function ProjectDetailPage() {
             </div>
           </div>
           <p className="muted">
-            Pré-visualização imediata: subtotal da linha {fmtEUR(previewNewLine.lines[0]?.line_subtotal || 0)} (taxa de
-            IVA do projeto: {ivaRate}%).
+            Subtotal desta linha: {fmtEUR(previewNewLine.lines[0]?.line_subtotal || 0)} (o total do orçamento soma todas
+            as linhas e aplica {ivaRate}% IVA + {profitRate}% lucro sobre o subtotal).
           </p>
           <button type="submit" className="btn btn-primary">
             Adicionar linha

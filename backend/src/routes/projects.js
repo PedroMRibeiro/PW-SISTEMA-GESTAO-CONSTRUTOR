@@ -21,14 +21,16 @@ async function fetchLines(projectId) {
 
 async function projectWithBudget(projectRow, clientName) {
   const lines = await fetchLines(projectRow.id);
-  const totals = computeBudgetTotals(lines, projectRow.ivaRate);
+  const totals = computeBudgetTotals(lines, projectRow.ivaRate, projectRow.profitRate);
   return {
     ...projectToApi(projectRow, clientName),
     budget_lines: totals.lines,
     budget: {
       subtotal: totals.subtotal,
       iva_rate: totals.iva_rate,
+      profit_rate: totals.profit_rate,
       iva_amount: totals.iva_amount,
+      profit_amount: totals.profit_amount,
       total: totals.total,
     },
   };
@@ -42,7 +44,7 @@ router.get('/', async (_req, res) => {
   const out = [];
   for (const row of rows) {
     const lines = await fetchLines(row.id);
-    const totals = computeBudgetTotals(lines, row.ivaRate);
+    const totals = computeBudgetTotals(lines, row.ivaRate, row.profitRate);
     out.push({
       ...projectToApi(row, row.client.name),
       budget_total: totals.total,

@@ -14,7 +14,7 @@ async function assertProject(id) {
   if (!projectId) return null;
   return prisma.project.findUnique({
     where: { id: projectId },
-    select: { id: true, ivaRate: true },
+    select: { id: true, ivaRate: true, profitRate: true },
   });
 }
 
@@ -26,15 +26,15 @@ async function linesForProject(projectId) {
   return rows.map(budgetLineToApi);
 }
 
-async function totalsForProject(projectId, ivaRate) {
+async function totalsForProject(projectId, ivaRate, profitRate) {
   const lines = await linesForProject(projectId);
-  return computeBudgetTotals(lines, ivaRate);
+  return computeBudgetTotals(lines, ivaRate, profitRate);
 }
 
 router.get('/', async (req, res) => {
   const p = await assertProject(req.params.projectId);
   if (!p) return res.status(404).json({ error: 'Projeto não encontrado' });
-  const totals = await totalsForProject(p.id, p.ivaRate);
+  const totals = await totalsForProject(p.id, p.ivaRate, p.profitRate);
   res.json({ lines: totals.lines, ...totals });
 });
 
@@ -72,7 +72,7 @@ router.post('/', async (req, res) => {
     where: { id: p.id },
     data: { updatedAt: new Date() },
   });
-  const totals = await totalsForProject(p.id, p.ivaRate);
+  const totals = await totalsForProject(p.id, p.ivaRate, p.profitRate);
   res.status(201).json({ line: budgetLineToApi(line), ...totals });
 });
 
@@ -109,7 +109,7 @@ router.put('/:lineId', async (req, res) => {
       where: { id: p.id },
       data: { updatedAt: new Date() },
     });
-    const totals = await totalsForProject(p.id, p.ivaRate);
+    const totals = await totalsForProject(p.id, p.ivaRate, p.profitRate);
     res.json({ line: budgetLineToApi(line), ...totals });
   } catch (e) {
     if (e.code === 'P2025') return res.status(404).json({ error: 'Linha não encontrada' });
@@ -133,7 +133,7 @@ router.delete('/:lineId', async (req, res) => {
       where: { id: p.id },
       data: { updatedAt: new Date() },
     });
-    const totals = await totalsForProject(p.id, p.ivaRate);
+    const totals = await totalsForProject(p.id, p.ivaRate, p.profitRate);
     res.json(totals);
   } catch (e) {
     if (e.code === 'P2025') return res.status(404).json({ error: 'Linha não encontrada' });

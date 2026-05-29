@@ -29,7 +29,9 @@ export default function ReportPage() {
   return (
     <div>
       <h1>Relatório por estado</h1>
-      <p className="muted">Projetos agrupados por estado e faturação total (soma dos orçamentos com IVA).</p>
+      <p className="muted">
+        Projetos agrupados por estado. O total de cada orçamento inclui subtotal + IVA + lucro do construtor.
+      </p>
       {error ? <div className="alert alert-error">{error}</div> : null}
       {!data ? (
         <p className="muted">A carregar…</p>
@@ -41,7 +43,7 @@ export default function ReportPage() {
               Total global: <strong>{fmtEUR(data.grand_total_billing)}</strong>
             </p>
             <p className="mono" style={{ fontSize: '1.1rem', margin: '0.5rem 0 0' }}>
-              Lucro global estimado: <strong>{fmtEUR(data.grand_total_profit)}</strong>
+              Lucro global do construtor: <strong>{fmtEUR(data.grand_total_profit)}</strong>
             </p>
           </div>
           <div className="card">
@@ -62,7 +64,7 @@ export default function ReportPage() {
                       style={{
                         width: '100%',
                         height: 12,
-                        background: '#e5e7eb',
+                        background: 'var(--surface2)',
                         borderRadius: 999,
                         overflow: 'hidden',
                         marginTop: 6,
@@ -72,7 +74,7 @@ export default function ReportPage() {
                         style={{
                           width: `${pct}%`,
                           height: '100%',
-                          background: 'linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%)',
+                          background: 'linear-gradient(90deg, var(--success) 0%, #2da86a 100%)',
                         }}
                       />
                     </div>
@@ -91,8 +93,8 @@ export default function ReportPage() {
                 <ul style={{ margin: 0, paddingLeft: '1.1rem' }}>
                   {block.projects.map((p) => (
                     <li key={p.id}>
-                      <Link to={`/projetos/${p.id}`}>{p.name}</Link> — {fmtEUR(p.total)} · lucro {fmtEUR(p.profit_amount)} (
-                      {p.profit_rate}%)
+                      <Link to={`/projetos/${p.id}`}>{p.name}</Link> — total {fmtEUR(p.total)} (lucro{' '}
+                      {fmtEUR(p.profit_amount)}, {p.profit_rate}%)
                     </li>
                   ))}
                 </ul>

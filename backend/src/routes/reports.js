@@ -33,14 +33,19 @@ router.get('/by-status', async (_req, res) => {
   };
 
   for (const p of projects) {
-    const { total } = computeBudgetTotals(linesForTotals(p.budgetLines), p.ivaRate);
-    const profitRate = Number(p.profitRate) || 0;
-    const profitAmount = total * (profitRate / 100);
+    const totals = computeBudgetTotals(linesForTotals(p.budgetLines), p.ivaRate, p.profitRate);
     const bucket = byStatus[p.status];
     bucket.count += 1;
-    bucket.total_billing += total;
-    bucket.total_profit += profitAmount;
-    bucket.projects.push({ id: p.id, name: p.name, total, profit_rate: profitRate, profit_amount: profitAmount });
+    bucket.total_billing += totals.total;
+    bucket.total_profit += totals.profit_amount;
+    bucket.projects.push({
+      id: p.id,
+      name: p.name,
+      subtotal: totals.subtotal,
+      total: totals.total,
+      profit_rate: totals.profit_rate,
+      profit_amount: totals.profit_amount,
+    });
   }
 
   for (const k of Object.keys(byStatus)) {
@@ -71,7 +76,7 @@ router.get('/dashboard', async (_req, res) => {
   const active = [];
 
   for (const row of rows) {
-    const { total } = computeBudgetTotals(linesForTotals(row.budgetLines), row.ivaRate);
+    const { total } = computeBudgetTotals(linesForTotals(row.budgetLines), row.ivaRate, row.profitRate);
     active.push({
       id: row.id,
       name: row.name,
