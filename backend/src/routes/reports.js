@@ -53,8 +53,12 @@ router.get('/by-status', async (_req, res) => {
     byStatus[k].total_profit = Math.round((byStatus[k].total_profit + Number.EPSILON) * 100) / 100;
   }
 
-  const grandTotal = Object.values(byStatus).reduce((s, b) => s + b.total_billing, 0);
-  const grandProfit = Object.values(byStatus).reduce((s, b) => s + b.total_profit, 0);
+  const grandTotal = Object.entries(byStatus)
+    .filter(([status]) => status !== 'cancelada')
+    .reduce((s, [, b]) => s + b.total_billing, 0);
+  const grandProfit = Object.entries(byStatus)
+    .filter(([status]) => status !== 'cancelada')
+    .reduce((s, [, b]) => s + b.total_profit, 0);
 
   res.json({
     by_status: byStatus,

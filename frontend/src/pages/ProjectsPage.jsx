@@ -39,6 +39,17 @@ export default function ProjectsPage() {
     };
   }, []);
 
+  async function removeProject(id, name) {
+    if (!window.confirm(`Eliminar o projeto «${name}»? Esta ação não pode ser desfeita.`)) return;
+    setError('');
+    try {
+      await api(`/api/projects/${id}`, { method: 'DELETE' });
+      setRows((r) => r.filter((p) => p.id !== id));
+    } catch (e) {
+      setError(e.body?.error || e.message);
+    }
+  }
+
   const filtered = useMemo(() => {
     let list = [...rows];
     if (statusFilter) {
@@ -118,6 +129,7 @@ export default function ProjectsPage() {
                   <th>Cliente</th>
                   <th>Estado</th>
                   <th className="mono">Orçamento final</th>
+                  <th />
                 </tr>
               </thead>
               <tbody>
@@ -131,6 +143,11 @@ export default function ProjectsPage() {
                       <span className={statusBadgeClass(p.status)}>{STATUS_LABELS[p.status]}</span>
                     </td>
                     <td className="mono">{fmtEUR(p.budget_total)}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>
+                      <button type="button" className="btn btn-danger" onClick={() => removeProject(p.id, p.name)}>
+                        Eliminar
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

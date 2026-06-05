@@ -7,9 +7,68 @@ function fmtEUR(n) {
   return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(n || 0);
 }
 
+function ProjectsModal({ statusKey, block, onClose }) {
+  if (!statusKey || !block) return null;
+
+  return (
+    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
+      <div
+        className="modal modal-wide"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="report-modal-title"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <h2 id="report-modal-title" style={{ marginTop: 0 }}>
+          {STATUS_LABELS[statusKey]}
+        </h2>
+        <p className="muted" style={{ marginTop: 0 }}>
+          {block.count} projeto(s) · Total {fmtEUR(block.total_billing)} · Lucro {fmtEUR(block.total_profit)}
+        </p>
+        {block.projects.length === 0 ? (
+          <p className="muted">Nenhum projeto neste estado.</p>
+        ) : (
+          <div className="table-wrap" style={{ maxHeight: 'min(60vh, 420px)', overflow: 'auto' }}>
+            <table>
+              <thead>
+                <tr>
+                  <th>Projeto</th>
+                  <th className="mono">Total</th>
+                  <th className="mono">Lucro</th>
+                </tr>
+              </thead>
+              <tbody>
+                {block.projects.map((p) => (
+                  <tr key={p.id}>
+                    <td>
+                      <Link to={`/projetos/${p.id}`} onClick={onClose}>
+                        {p.name}
+                      </Link>
+                    </td>
+                    <td className="mono">{fmtEUR(p.total)}</td>
+                    <td className="mono">
+                      {fmtEUR(p.profit_amount)} ({p.profit_rate}%)
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <div className="modal-actions">
+          <button type="button" className="btn btn-primary" onClick={onClose}>
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ReportPage() {
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
+  const [modalStatus, setModalStatus] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -25,6 +84,8 @@ export default function ReportPage() {
       cancelled = true;
     };
   }, []);
+
+  const modalBlock = modalStatus && data ? data.by_status[modalStatus] : null;
 
   return (
     <div>
@@ -44,6 +105,9 @@ export default function ReportPage() {
             </p>
             <p className="mono" style={{ fontSize: '1.1rem', margin: '0.5rem 0 0' }}>
               Lucro global do construtor: <strong>{fmtEUR(data.grand_total_profit)}</strong>
+            </p>
+            <p className="muted" style={{ margin: '0.75rem 0 0', fontSize: '0.85rem' }}>
+              
             </p>
           </div>
           <div className="card">
@@ -83,24 +147,37 @@ export default function ReportPage() {
               })}
             </div>
           </div>
-          <div className="grid2">
-            {Object.entries(data.by_status).map(([key, block]) => (
-              <div key={key} className="card">
-                <h2>{STATUS_LABELS[key]}</h2>
-                <p className="muted" style={{ margin: '0 0 0.5rem' }}>
-                  {block.count} projeto(s) · Total {fmtEUR(block.total_billing)} · Lucro {fmtEUR(block.total_profit)}
-                </p>
-                <ul style={{ margin: 0, paddingLeft: '1.1rem' }}>
-                  {block.projects.map((p) => (
-                    <li key={p.id}>
-                      <Link to={`/projetos/${p.id}`}>{p.name}</Link> — total {fmtEUR(p.total)} (lucro{' '}
-                      {fmtEUR(p.profit_amount)}, {p.profit_rate}%)
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+          <div className="card">
+            <h2>Obras por estado</h2>
+            <p className="muted" style={{ marginTop: 0 }}>
+              Resumo por estado. Use &quot;Ver projetos&quot; para abrir a lista completa.
+            </p>
+            <div className="status-report-grid">
+              {Object.entries(data.by_status).map(([key, block]) => (
+                <div key={key} className="status-report-card">
+                  <h3>{STATUS_LABELS[key]}</h3>
+                  <p className="muted" style={{ margin: '0 0 0.75rem', fontSize: '0.9rem' }}>
+                    {block.count} projeto(s)
+                  </p>
+                  <p className="mono" style={{ margin: '0 0 0.25rem', fontSize: '0.95rem' }}>
+                    Total: <strong>{fmtEUR(block.total_billing)}</strong>
+                  </p>
+                  <p className="mono" style={{ margin: '0 0 0.85rem', fontSize: '0.95rem' }}>
+                    Lucro: <strong>{fmtEUR(block.total_profit)}</strong>
+                  </p>
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() => setModalStatus(key)}
+                    disabled={block.count === 0}
+                  >
+                    Ver projetos
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
+          <ProjectsModal statusKey={modalStatus} block={modalBlock} onClose={() => setModalStatus(null)} />
         </>
       )}
     </div>

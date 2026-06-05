@@ -255,6 +255,24 @@ tr:last-child td {
   max-width: 420px;
   width: 100%;
 }
+.modal-wide {
+  max-width: 560px;
+}
+.status-report-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+.status-report-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+}
+.status-report-card h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
 .modal-actions {
   display: flex;
   gap: 0.5rem;

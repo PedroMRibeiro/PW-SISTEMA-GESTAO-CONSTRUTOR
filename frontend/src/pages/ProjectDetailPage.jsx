@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { computeTotals } from '../budgetMath.js';
 import { STATUS_LABELS, STATUS_OPTIONS, statusBadgeClass } from '../status.js';
@@ -30,8 +30,10 @@ function ConfirmModal({ open, title, message, onCancel, onConfirm, danger }) {
 
 export default function ProjectDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [ivaRate, setIvaRate] = useState('23');
@@ -88,25 +90,30 @@ export default function ProjectDetailPage() {
     [newQty, newPrice, ivaRate, profitRate],
   );
 
-  async function saveMeta(e) {
-    e.preventDefault();
+  async function saveAll() {
     setError('');
+    setSaving(true);
     try {
-      const p = await api(`/api/projects/${id}`, {
+      await api(`/api/projects/${id}`, {
         method: 'PUT',
         body: { name, description, iva_rate: Number(ivaRate), profit_rate: Number(profitRate) },
       });
-      setProject(p);
-      setBudget(p.budget);
-      setLines(
-        (p.budget_lines || []).map((l) => ({
-          ...l,
-          quantity: String(l.quantity),
-          unit_price: String(l.unit_price),
-        })),
-      );
+      for (const line of lines) {
+        await api(`/api/projects/${id}/lines/${line.id}`, {
+          method: 'PUT',
+          body: {
+            description: line.description,
+            quantity: Number(line.quantity),
+            unit_price: Number(line.unit_price),
+            display_order: line.display_order,
+          },
+        });
+      }
+      navigate('/projetos');
     } catch (err) {
       setError(err.body?.error || err.message);
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -247,43 +254,38 @@ export default function ProjectDetailPage() {
 
       <div className="card">
         <h2>Dados do projeto</h2>
-        <form onSubmit={saveMeta}>
-          <div className="grid2">
-            <div className="field">
-              <label htmlFor="pname">Nome</label>
-              <input id="pname" value={name} onChange={(e) => setName(e.target.value)} required />
-            </div>
-            <div className="field">
-              <label htmlFor="piva">IVA (%)</label>
-              <input
-                id="piva"
-                type="number"
-                step="0.01"
-                min="0"
-                value={ivaRate}
-                onChange={(e) => setIvaRate(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="pprofit">Lucro do construtor (%)</label>
-              <input
-                id="pprofit"
-                type="number"
-                step="0.01"
-                min="0"
-                value={profitRate}
-                onChange={(e) => setProfitRate(e.target.value)}
-              />
-            </div>
+        <div className="grid2">
+          <div className="field">
+            <label htmlFor="pname">Nome</label>
+            <input id="pname" value={name} onChange={(e) => setName(e.target.value)} required />
           </div>
           <div className="field">
-            <label htmlFor="pdesc">Descrição</label>
-            <textarea id="pdesc" value={description} onChange={(e) => setDescription(e.target.value)} />
+            <label htmlFor="piva">IVA (%)</label>
+            <input
+              id="piva"
+              type="number"
+              step="0.01"
+              min="0"
+              value={ivaRate}
+              onChange={(e) => setIvaRate(e.target.value)}
+            />
           </div>
-          <button type="submit" className="btn btn-primary">
-            Guardar dados
-          </button>
-        </form>
+          <div className="field">
+            <label htmlFor="pprofit">Lucro do construtor (%)</label>
+            <input
+              id="pprofit"
+              type="number"
+              step="0.01"
+              min="0"
+              value={profitRate}
+              onChange={(e) => setProfitRate(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="field">
+          <label htmlFor="pdesc">Descrição</label>
+          <textarea id="pdesc" value={description} onChange={(e) => setDescription(e.target.value)} />
+        </div>
 
         <div className="field" style={{ marginTop: '1rem' }}>
           <label htmlFor="st">Alterar estado</label>
@@ -428,6 +430,12 @@ export default function ProjectDetailPage() {
             Adicionar linha
           </button>
         </form>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.25rem' }}>
+        <button type="button" className="btn btn-primary" onClick={saveAll} disabled={saving || !name.trim()}>
+          {saving ? 'A guardar…' : 'Guardar dados'}
+        </button>
       </div>
 
       <ConfirmModal

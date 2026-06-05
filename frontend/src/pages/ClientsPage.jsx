@@ -71,7 +71,7 @@ export default function ClientsPage() {
           Novo cliente
         </button>
       </div>
-      <p className="muted">CRUD de clientes (cada projeto referencia um cliente).</p>
+      <p></p>
       {error ? <div className="alert alert-error">{error}</div> : null}
 
       {editing ? (

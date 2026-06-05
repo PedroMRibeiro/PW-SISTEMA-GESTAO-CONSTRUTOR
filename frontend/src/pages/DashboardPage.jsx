@@ -29,7 +29,7 @@ export default function DashboardPage() {
   return (
     <div>
       <h1>Painel</h1>
-      <p className="muted">Projetos ativos (exclui concluídos e cancelados) e valor total em curso.</p>
+      <p className="muted"></p>
       {error ? <div className="alert alert-error">{error}</div> : null}
       {!data ? (
         <p className="muted">A carregar…</p>

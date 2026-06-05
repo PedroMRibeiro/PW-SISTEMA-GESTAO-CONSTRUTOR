@@ -1,4 +1,5 @@
 const TOKEN_KEY = 'gc_token';
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY);
@@ -17,7 +18,7 @@ export async function api(path, options = {}) {
     headers['Content-Type'] = 'application/json';
     options.body = JSON.stringify(options.body);
   }
-  const res = await fetch(path, { ...options, headers });
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   const text = await res.text();
   let data = null;
   if (text) {
