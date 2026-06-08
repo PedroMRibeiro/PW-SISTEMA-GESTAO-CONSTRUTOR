@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api.js';
+import { ErrorAlert, EmptyState, TableSkeleton } from '../components/ui.jsx';
+import { PlusIcon, ClientsIcon, EditIcon, TrashIcon, CloseIcon } from '../components/icons.jsx';
 
 export default function ClientsPage() {
   const [rows, setRows] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null);
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', phone: '' });
 
   async function load() {
@@ -24,6 +27,19 @@ export default function ClientsPage() {
     load();
   }, []);
 
+  useEffect(() => {
+    if (!editing) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setEditing(null);
+    };
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [editing]);
+
   function startCreate() {
     setEditing('new');
     setForm({ name: '', email: '', phone: '' });
@@ -37,6 +53,7 @@ export default function ClientsPage() {
   async function saveClient(e) {
     e.preventDefault();
     setError('');
+    setSaving(true);
     try {
       if (editing === 'new') {
         const c = await api('/api/clients', { method: 'POST', body: form });
@@ -48,6 +65,8 @@ export default function ClientsPage() {
       setEditing(null);
     } catch (err) {
       setError(err.body?.error || err.message);
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -65,70 +84,68 @@ export default function ClientsPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '1rem' }}>
-        <h1>Clientes</h1>
+      <div className="page-head">
+        <div>
+          <h1>Clientes</h1>
+          <p className="subtitle">A sua carteira de clientes. Cada projeto pertence a um cliente.</p>
+        </div>
         <button type="button" className="btn btn-primary" onClick={startCreate}>
+          <PlusIcon size={18} />
           Novo cliente
         </button>
       </div>
-      <p></p>
-      {error ? <div className="alert alert-error">{error}</div> : null}
 
-      {editing ? (
-        <form className="card" onSubmit={saveClient}>
-          <h2>{editing === 'new' ? 'Novo cliente' : 'Editar cliente'}</h2>
-          <div className="field">
-            <label>Nome</label>
-            <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required />
-          </div>
-          <div className="field">
-            <label>Email</label>
-            <input
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-            />
-          </div>
-          <div className="field">
-            <label>Telefone</label>
-            <input value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
-          </div>
-          <button type="submit" className="btn btn-primary">
-            Guardar
-          </button>{' '}
-          <button type="button" className="btn btn-ghost" onClick={() => setEditing(null)}>
-            Fechar
-          </button>
-        </form>
-      ) : null}
+      <ErrorAlert>{error}</ErrorAlert>
 
       {loading ? (
-        <p className="muted">A carregar…</p>
+        <TableSkeleton rows={4} cols={4} />
+      ) : rows.length === 0 ? (
+        <div className="card">
+          <EmptyState
+            icon={<ClientsIcon size={26} />}
+            title="Sem clientes"
+            message="Adicione o primeiro cliente para poder criar projetos."
+            action={
+              <button type="button" className="btn btn-primary btn-sm" onClick={startCreate}>
+                <PlusIcon size={16} />
+                Adicionar cliente
+              </button>
+            }
+          />
+        </div>
       ) : (
-        <div className="card" style={{ padding: 0 }}>
-          <div className="table-wrap" style={{ border: 'none' }}>
+        <div className="card card-pad-0">
+          <div className="table-wrap">
             <table>
               <thead>
                 <tr>
                   <th>Nome</th>
                   <th>Email</th>
                   <th>Telefone</th>
-                  <th />
+                  <th style={{ width: 1 }} />
                 </tr>
               </thead>
               <tbody>
                 {rows.map((c) => (
                   <tr key={c.id}>
-                    <td>{c.name}</td>
-                    <td>{c.email || '—'}</td>
-                    <td>{c.phone || '—'}</td>
-                    <td style={{ whiteSpace: 'nowrap' }}>
-                      <button type="button" className="btn" onClick={() => startEdit(c)}>
-                        Editar
-                      </button>{' '}
-                      <button type="button" className="btn btn-danger" onClick={() => removeClient(c.id)}>
-                        Apagar
-                      </button>
+                    <td className="link-strong">{c.name}</td>
+                    <td className="muted">{c.email || '—'}</td>
+                    <td className="muted">{c.phone || '—'}</td>
+                    <td>
+                      <div className="cell-actions">
+                        <button type="button" className="btn btn-sm btn-icon" title="Editar" aria-label="Editar" onClick={() => startEdit(c)}>
+                          <EditIcon size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-danger btn-sm btn-icon"
+                          title="Apagar"
+                          aria-label="Apagar"
+                          onClick={() => removeClient(c.id)}
+                        >
+                          <TrashIcon size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -137,6 +154,41 @@ export default function ClientsPage() {
           </div>
         </div>
       )}
+
+      {editing ? (
+        <div className="modal-backdrop" role="presentation" onMouseDown={() => setEditing(null)}>
+          <div className="modal" role="dialog" aria-modal="true" onMouseDown={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ margin: 0 }}>{editing === 'new' ? 'Novo cliente' : 'Editar cliente'}</h2>
+              <button type="button" className="btn btn-ghost btn-icon" aria-label="Fechar" onClick={() => setEditing(null)}>
+                <CloseIcon size={18} />
+              </button>
+            </div>
+            <form onSubmit={saveClient} style={{ marginTop: '1rem' }}>
+              <div className="field">
+                <label>Nome</label>
+                <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required autoFocus />
+              </div>
+              <div className="field">
+                <label>Email</label>
+                <input type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
+              </div>
+              <div className="field">
+                <label>Telefone</label>
+                <input value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn btn-ghost" onClick={() => setEditing(null)}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn btn-primary" disabled={saving}>
+                  {saving ? 'A guardar…' : 'Guardar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

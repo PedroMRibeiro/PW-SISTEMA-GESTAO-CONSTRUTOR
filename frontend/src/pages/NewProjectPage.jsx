@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
+import { ErrorAlert, Spinner } from '../components/ui.jsx';
+import { ArrowLeftIcon, PlusIcon } from '../components/icons.jsx';
 
 export default function NewProjectPage() {
   const nav = useNavigate();
@@ -11,6 +13,7 @@ export default function NewProjectPage() {
   const [ivaRate, setIvaRate] = useState('23');
   const [profitRate, setProfitRate] = useState('0');
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -33,6 +36,7 @@ export default function NewProjectPage() {
   async function onSubmit(e) {
     e.preventDefault();
     setError('');
+    setSaving(true);
     try {
       const p = await api('/api/projects', {
         method: 'POST',
@@ -47,19 +51,40 @@ export default function NewProjectPage() {
       nav(`/projetos/${p.id}`, { replace: true });
     } catch (err) {
       setError(err.body?.error || err.message);
+      setSaving(false);
     }
   }
 
+  const noClients = clients.length === 0;
+
   return (
-    <div style={{ maxWidth: 520 }}>
-      <h1>Novo projeto</h1>
-      <p className="muted">Cada projeto pertence a um cliente.</p>
-      {error ? <div className="alert alert-error">{error}</div> : null}
+    <div style={{ maxWidth: 640 }}>
+      <Link to="/projetos" className="btn btn-ghost btn-sm" style={{ marginBottom: '0.9rem' }}>
+        <ArrowLeftIcon size={16} />
+        Voltar aos projetos
+      </Link>
+      <div className="page-head">
+        <div>
+          <h1>Novo projeto</h1>
+          <p className="subtitle">Cada projeto pertence a um cliente e tem a sua taxa de IVA e lucro.</p>
+        </div>
+      </div>
+
+      <ErrorAlert>{error}</ErrorAlert>
+
+      {noClients ? (
+        <div className="alert alert-error" style={{ background: 'var(--warning-soft)', borderColor: 'rgba(245,183,61,0.35)', color: '#f5cf7a' }}>
+          <span>
+            Ainda não tem clientes. <Link to="/clientes">Crie um cliente</Link> antes de adicionar um projeto.
+          </span>
+        </div>
+      ) : null}
+
       <form className="card" onSubmit={onSubmit}>
         <div className="field">
           <label htmlFor="client">Cliente</label>
           <select id="client" value={clientId} onChange={(e) => setClientId(e.target.value)} required>
-            {clients.length === 0 ? <option value="">Crie um cliente primeiro</option> : null}
+            {noClients ? <option value="">Crie um cliente primeiro</option> : null}
             {clients.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -69,29 +94,25 @@ export default function NewProjectPage() {
         </div>
         <div className="field">
           <label htmlFor="name">Nome da obra</label>
-          <input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+          <input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Remodelação T3 — Av. da Liberdade" required />
         </div>
         <div className="field">
           <label htmlFor="desc">Descrição</label>
-          <textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} />
+          <textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Notas e âmbito do trabalho (opcional)" />
         </div>
-        <div className="field">
-          <label htmlFor="iva">Taxa de IVA (%)</label>
-          <input id="iva" type="number" step="0.01" min="0" value={ivaRate} onChange={(e) => setIvaRate(e.target.value)} />
+        <div className="grid2">
+          <div className="field">
+            <label htmlFor="iva">Taxa de IVA (%)</label>
+            <input id="iva" type="number" step="0.01" min="0" value={ivaRate} onChange={(e) => setIvaRate(e.target.value)} className="mono" />
+          </div>
+          <div className="field">
+            <label htmlFor="profit">Taxa de lucro (%)</label>
+            <input id="profit" type="number" step="0.01" min="0" value={profitRate} onChange={(e) => setProfitRate(e.target.value)} className="mono" />
+          </div>
         </div>
-        <div className="field">
-          <label htmlFor="profit">Taxa de lucro (%)</label>
-          <input
-            id="profit"
-            type="number"
-            step="0.01"
-            min="0"
-            value={profitRate}
-            onChange={(e) => setProfitRate(e.target.value)}
-          />
-        </div>
-        <button type="submit" className="btn btn-primary" disabled={!clientId}>
-          Criar projeto
+        <button type="submit" className="btn btn-primary" disabled={!clientId || saving} style={{ marginTop: '0.4rem' }}>
+          {saving ? <Spinner /> : <PlusIcon size={18} />}
+          {saving ? 'A criar…' : 'Criar projeto'}
         </button>
       </form>
     </div>

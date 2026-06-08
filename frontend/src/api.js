@@ -1,3 +1,5 @@
+import { isDemo, demoApi } from './demo.js';
+
 const TOKEN_KEY = 'gc_token';
 const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
@@ -11,6 +13,10 @@ export function setToken(token) {
 }
 
 export async function api(path, options = {}) {
+  // Modo demonstração: responde localmente, sem backend.
+  if (isDemo()) {
+    return demoApi(path, options);
+  }
   const headers = { ...(options.headers || {}) };
   const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;

@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState, useEffect } from 'react';
 import { api, getToken, setToken } from '../api.js';
+import { setDemo } from '../demo.js';
 
 const AuthContext = createContext(null);
 
@@ -49,8 +50,15 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(() => {
+    setDemo(false);
     setToken(null);
     setUser(null);
+  }, []);
+
+  const enterDemo = useCallback(() => {
+    setDemo(true);
+    setToken('demo-token');
+    setUser({ email: 'demo@demo.pt' });
   }, []);
 
   const value = useMemo(
@@ -61,8 +69,9 @@ export function AuthProvider({ children }) {
       login,
       register,
       logout,
+      enterDemo,
     }),
-    [user, ready, login, register, logout],
+    [user, ready, login, register, logout, enterDemo],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
