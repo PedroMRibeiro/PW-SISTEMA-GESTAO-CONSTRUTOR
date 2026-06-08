@@ -100,7 +100,7 @@ export default function RegisterPage() {
           <div className="divider">ou</div>
           <button type="button" className="btn btn-block" onClick={onDemo}>
             <PlayIcon size={16} />
-            Ver demonstração (sem backend)
+            Ver demonstração
           </button>
 
           <p className="muted" style={{ marginTop: '1.3rem', textAlign: 'center' }}>
