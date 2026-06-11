@@ -1,0 +1,444 @@
+{
+  "info": {
+    "name": "PW-SISTEMA-GESTAO-CONSTRUTOR API",
+    "_postman_id": "b1bba4a2-8f79-4f8c-a9e1-8d6d9951f03e",
+    "description": "Postman collection para testar a API do backend do projecto.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/health",
+          "host": ["{{base_url}}"],
+          "path": ["api", "health"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Register User",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"professor@example.com\",\n  \"password\": \"senha123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/register",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "register"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Login User",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"professor@example.com\",\n  \"password\": \"senha123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "login"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Clients",
+      "item": [
+        {
+          "name": "List Clients",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/clients",
+              "host": ["{{base_url}}"],
+              "path": ["api", "clients"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Client",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cliente Exemplo\",\n  \"email\": \"cliente@example.com\",\n  \"phone\": \"+351912345678\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/clients",
+              "host": ["{{base_url}}"],
+              "path": ["api", "clients"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Client by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/clients/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "clients", ":id"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Client",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cliente Atualizado\",\n  \"email\": \"cliente.atualizado@example.com\",\n  \"phone\": \"+351987654321\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/clients/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "clients", ":id"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Client",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/clients/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "clients", ":id"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Projects",
+      "item": [
+        {
+          "name": "List Projects",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Project",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"client_id\": 1,\n  \"name\": \"Projeto Exemplo\",\n  \"description\": \"Descrição do projeto\",\n  \"status\": \"orcamento\",\n  \"iva_rate\": 23,\n  \"profit_rate\": 15\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/projects",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Project by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", ":id"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Project",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Projeto Atualizado\",\n  \"description\": \"Descrição actualizada\",\n  \"iva_rate\": 23,\n  \"profit_rate\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/projects/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", ":id"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Change Project Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"em_curso\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/projects/:id/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", ":id", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Project",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", ":id"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Budget Lines",
+      "item": [
+        {
+          "name": "List Project Lines",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/:projectId/lines",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", ":projectId", "lines"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Budget Line",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Linha de orçamento\",\n  \"quantity\": 2,\n  \"unit_price\": 150.0,\n  \"display_order\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/projects/:projectId/lines",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", ":projectId", "lines"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Budget Line",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Linha atualizada\",\n  \"quantity\": 3,\n  \"unit_price\": 175.0,\n  \"display_order\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/projects/:projectId/lines/:lineId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", ":projectId", "lines", ":lineId"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Budget Line",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/:projectId/lines/:lineId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", ":projectId", "lines", ":lineId"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Report by Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reports/by-status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reports", "by-status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Dashboard Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reports/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reports", "dashboard"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
